@@ -57,12 +57,12 @@
    ```
 
 ## 输出结果
-
+最优解两个，值为 114：
 ![20211011173224](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173224.png)
 
 ![20211011173235](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173235.png)
 
-> 注：最优解 114 很差，由于叶子序列 [0,0,3,0,3,0,4,0] 对应二叉树的第 8 层没有节点。
+> 注：叶子序列 [0,0,3,0,3,0,4,0] 对应二叉树的第 8 层没有节点，所以最优解几乎把所有叶节点都动了。
 
 # 运行效率
 ## 计算例子
@@ -78,9 +78,10 @@
 
 ## 坏情况
 当序列取值很大时，**考虑极端序列`[1, 2, 4, 8, 16, 26, 26, 0]`，验证数目达到 `449397407209308259968`（20位数）
+![20211011211005](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011211005.png)
 
-随机测试 10^6 个序列，大约两成不能用。
-![20211011195857](https://i.loli.net/2021/10/11/QWzi8LvREMwJqtN.png)
+随机测试了 10^6 个序列，大约两成不能用，坏情况节点很多，例如
+![20211011210746](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011210746.png)
 
 # 总结
 
