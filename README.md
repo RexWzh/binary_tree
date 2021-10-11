@@ -56,10 +56,9 @@
    ```
 
 ## 输出结果
-1. 初始图，新图及对应操作
-   ![20211011173224](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173224.png)
 
-2. 另一解
-   ![20211011173235](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173235.png)
+![20211011173224](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173224.png)
 
-> 注：最优解很差，因为叶子序列 [0,0,3,0,3,0,4,0] 对应的图像第 8 层没有节点。
+![20211011173235](https://cdn.jsdelivr.net/gh/RexWzh/PicBed@picgo/picgo_folder/20211011173235.png)
+
+> 注：最优解 114 仍然很差，由于叶子序列 [0,0,3,0,3,0,4,0] 对应二叉树的第 8 层没有节点。
