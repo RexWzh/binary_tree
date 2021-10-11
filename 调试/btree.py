@@ -1,6 +1,7 @@
 from binarytree import Node
 from copy import deepcopy
 from math import log
+from random import randint
 
 class BTree(Node):
     """二叉树，继承 Node 的显示功能
@@ -156,6 +157,16 @@ def is_child(node,combine):
             return True
     return False
 
+def random_nonleaves_seq(n):
+    """随机生成 n 层的非叶节点序列"""
+    assert n>0, "层数至少为1"
+    if n==1: return [0]
+    seq = [1]
+    while len(seq)!=n-1:
+        total = seq[-1] * 2
+        seq.append(randint(1,total))
+    return seq+[0]
+
 def binary_tree_cost(positions,nonleaves):
     """求二叉树变形的最优解"""
     old_tree = BTree.list_to_tree(positions)
@@ -183,4 +194,4 @@ def binary_tree_cost(positions,nonleaves):
             min_cost = cost
             optimals= [new_tree]
             operates = [(sep,com)]
-    return operates,optimals,cost
+    return operates,optimals,min_cost
