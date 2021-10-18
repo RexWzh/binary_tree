@@ -109,8 +109,6 @@ def choose(data,n):
     return omitlast+takelast
 
 
-
-
 ### 其他函数 ###
 
 def is_nonleaves(nonleaves):
