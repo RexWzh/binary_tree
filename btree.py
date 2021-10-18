@@ -1,6 +1,5 @@
 from binarytree import Node
 from copy import deepcopy
-from math import log
 from random import randint
 
 class BTree(Node):
@@ -20,13 +19,6 @@ class BTree(Node):
     def last_layer(self):
         """返回最后一层节点"""
         return [l for l in self.leaves if l.depth==self.max_depth]
-    
-    def new_trees(self,k):
-        """生成新树，非叶节点个数为k"""
-        last_layer = self.last_layer
-        num = len(last_layer)
-        indexs = choose(list(range(num)),k)
-        return [self.new_tree_by_index(index) for index in indexs]
     
     def new_tree_by_index(self,index):
         """指定要展开的节点，生成新树
@@ -65,8 +57,8 @@ class BTree(Node):
         right.position = 2 * node.position + 1
         return right
     
-    def tree_indexs(self):
-        """查看树的索引"""
+    def position_tree(self):
+        """返回相同形状的树，取值为索引值"""
         tree = deepcopy(self)
         for node in tree:
             node.value = node.position
@@ -78,8 +70,6 @@ class BTree(Node):
         n = len(positions)
         assert n, "输入列表不能为空"
         assert positions[0] is not None,"根节点不能为空"
-        # 最长深度
-        depth = int(log(n,2))
         # 初始化根节点
         tree = BTree(positions[0])
         while True:
@@ -103,6 +93,14 @@ class BTree(Node):
             else:
                 break
         return tree
+
+    
+def new_trees(tree,k):
+    """生成新树，非叶节点个数为k"""
+    last_layer = tree.last_layer
+    num = len(last_layer)
+    indexs = choose(list(range(num)),k)
+    return [tree.new_tree_by_index(index) for index in indexs]
 
 def check_nonleaves(nonleaves):
     """检查非叶节点序列"""
@@ -128,9 +126,7 @@ def nonleaves_to_trees(nonleaves):
 
 def leaves_to_nonleaves(leaves):
     """叶节点序列转非叶节点序列"""
-    # 层数
-    n = len(leaves)
-    assert n>0, "输入不能为空列表"
+    assert len(leaves)>0, "输入不能为空列表"
     # 非叶节点序列和总节点序列
     nonleaves,nodes = [1-leaves[0]],[1]
     for i in leaves[1:]:
@@ -142,7 +138,7 @@ def leaves_to_nonleaves(leaves):
     
 def choose(data,n):
     """从 data 中取 n 个元素(Python 自带工具太少了！)"""
-    if n == 0: return []
+    if n < len(data): return []
     if n == 1: return [[i] for i in data]
     if n == len(data): return [data]
     omitlast = choose(data[:-1],n)
