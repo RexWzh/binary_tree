@@ -108,9 +108,7 @@ def choose(data,n):
     takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
     return omitlast+takelast
 
-
 ### 其他函数 ###
-
 def is_nonleaves(nonleaves):
     """检查非叶节点序列"""
     if len(nonleaves)==0:return False
@@ -169,6 +167,8 @@ def random_nonleaves_seq(n):
         total = seq[-1] * 2
         seq.append(randint(1,total))
     return seq+[0]
+nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
+random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
 
 def binary_tree_cost(positions,nonleaves):
     """求二叉树变形的最优解"""
