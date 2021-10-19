@@ -19,7 +19,6 @@ class BTree(Node):
         """ 最后一层叶节点取 k 个拆开 -> 所有可能的新树"""
         num = len(self.last_layer)
         indexs = choose(list(range(num)),k)
-        print(indexs,num,k)
         return [self._new_tree_by_index(index) for index in indexs]
     
     def _new_tree_by_index(self,index):
