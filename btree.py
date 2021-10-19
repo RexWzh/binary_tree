@@ -1,8 +1,8 @@
 from binarytree import Node
 from copy import deepcopy
 from random import randint
+from math import factorial
 
-### 类函数
 class BTree(Node):
     """二叉树，继承 Node 的显示功能
     根节点位置记为1，深度记为0
@@ -17,6 +17,7 @@ class BTree(Node):
         
     def trees_by_k_nonleaves(self,k):
         """ 最后一层叶节点取 k 个拆开 -> 所有可能的新树"""
+        if k==0:return [deepcopy(self)]
         num = len(self.last_layer)
         indexs = choose(list(range(num)),k)
         return [self._new_tree_by_index(index) for index in indexs]
@@ -33,6 +34,11 @@ class BTree(Node):
             self.add_left_right_to_node(last_layer[i])
         tree._max_depth += 1 # 总深度+1
         return tree
+    
+    @property
+    def max_depth(self):
+        """树的最长深度"""
+        return self._max_depth
     
     @property
     def last_layer(self):
@@ -97,10 +103,10 @@ class BTree(Node):
             else:
                 break
         return tree
-    
+
 def choose(data,n):
     """从 data 中取 n 个元素"""
-    if n > len(data): return []
+    if n > len(data) or n==0: return []
     if n == 1: return [[i] for i in data]
     if n == len(data): return [data]
     omitlast = choose(data[:-1],n)
@@ -114,20 +120,6 @@ def is_nonleaves(nonleaves):
     if len(nonleaves)==1:return True
     return all([2*i>=j for i,j in zip(nonleaves[:-1],nonleaves[1:])])
 
-def nonleaves_to_trees(nonleaves):
-    """非叶节点序列 -> 所有可能的树"""
-    # 新树集合
-    assert is_nonleaves(nonleaves), "非叶序列输入有误"
-    trees = [BTree()]
-    for ak in nonleaves:
-        if ak == 0: # 后续没有节点了
-            break
-        new_trees = [] # 新一层
-        for tree in trees: # 对上层遍历
-            new_trees.extend(tree.trees_by_k_nonleaves(ak))
-        trees = new_trees
-    return new_trees
-
 def leaves_to_nonleaves(leaves):
     """叶节点序列 -> 非叶节点序列"""
     assert len(leaves)>0, "输入不能为空列表"
@@ -139,15 +131,6 @@ def leaves_to_nonleaves(leaves):
     # 检查未项是否只剩叶节点
     assert nonleaves[-1]==0,"输入叶节点序列不完整"
     return nonleaves
-    
-def choose(data,n):
-    """从 data 中取 n 个元素"""
-    if n > len(data): return []
-    if n == 1: return [[i] for i in data]
-    if n == len(data): return [data]
-    omitlast = choose(data[:-1],n)
-    takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
-    return omitlast+takelast
 
 def is_child(node,combine):
     """检验 node 是否为 combine 中元素的后代"""
@@ -168,32 +151,3 @@ def random_nonleaves_seq(n):
     return seq+[0]
 nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
 random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
-
-def binary_tree_cost(positions,nonleaves):
-    """求二叉树变形的最优解"""
-    old_tree = BTree.list_to_tree(positions)
-    old_nodes = {node.position for node in old_tree}
-    old_leafs = {node.position for node in old_tree.leaves}
-    new_trees = nonleaves_to_trees(nonleaves)
-    min_cost = sum(positions[i-1] for i in old_leafs) # 最小开销
-    optimals = [] # 最优解
-    operates = [] # 最优操作
-    for new_tree in new_trees:
-        # 新树信息
-        new_leafs = {node.position for node in new_tree.leaves}
-        new_nodes = {node.position for node in new_tree}
-        # 获取操作
-        com = old_nodes.difference(old_leafs).intersection(new_leafs)
-        sep = new_nodes.difference(new_leafs).intersection(old_leafs)
-        # 计算开销
-        com_leafs = {leaf for leaf in old_leafs if is_child(leaf,com)}
-        nodes = sep.union(com_leafs) # 被修改的节点
-        cost = sum(positions[i-1] for i in nodes)
-        if cost == min_cost and (sep,com) not in operates:
-            optimals.append(new_tree)
-            operates.append((sep,com))
-        elif cost < min_cost:
-            min_cost = cost
-            optimals= [new_tree]
-            operates = [(sep,com)]
-    return operates,optimals,min_cost
