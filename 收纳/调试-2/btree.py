@@ -115,75 +115,7 @@ def get_nodes_cost(tree) -> (dict,dict):
             if v: nonleaf_cost[node.position] = v
     return nonleaf_cost,leaf_cost
 
-### 主函数打包 ###
-def main(positions,leaves):
-    n = len(leaves)
-    old = BTree.list_to_tree(positions)
-    nonleaf_cost,leaf_cost = get_nodes_cost(old) # 节点开销信息
-    nonleaves = leaves_to_nonleaves(leaves)
-    root = BTree(0)
-    root.cost = 0 # 初始开销
-    min_cost = sum(leaf_cost.values()) # 最小开销
-    optimal = None # 最优解
-    tmp_trees = [root] # 待遍历集合
-    while len(tmp_trees):
-        tree = tmp_trees[0] # 取最小开销树
-        tmp_trees = tmp_trees[1:]
-        k = tree.max_depth # 总层数
-        ak = nonleaves[k] # 要展开的节点数（不能为0）
-        assert ak,"展开数不能为0"
-        # 三类节点
-        sep,not_sep,whatever = [],[],[]
-        for node in tree.last_layer:
-            if node.position in nonleaf_cost:
-                sep.append(node.position)
-            elif node.position in leaf_cost:
-                not_sep.append(node.position)
-            else:
-                whatever.append(node.position)
-        # 产生新树
-        news = []
-        if ak < len(sep): # 展开少，取 sep 子集，增加未取部分开销
-            for choice in choose(sep,ak):
-                new = tree.new_tree_by_positions(choice)
-                new.cost += sum(nonleaf_cost[i] for i in sep if i not in choice)
-                news.append(new)
-        elif len(sep) <= ak <= len(sep)+len(whatever): # 展开适中，不增加开销
-            choice = sep + whatever[:ak-len(sep)]
-            news = [tree.new_tree_by_positions(choice)]
-        else: # 展开多，取 not_sep 子集，增加选取部分开销
-            for choice in choose(not_sep,ak-len(sep)-len(whatever)):
-                new = tree.new_tree_by_positions(sep+whatever+choice)
-                new.cost += sum(leaf_cost[i] for i in choice)
-                news.append(new)
-        # 处理新树
-        if nonleaves[k+1]==0: # 树已完全展开
-            if k+2<n: # 剩下节点合并
-                for new in news:
-                    new.cost += sum(nonleaf_cost.get(node.position,0) for node in new.last_layer)
-            for new in news:
-                if new.cost < min_cost:
-                    min_cost = new.cost
-                    optimal = new
-                    tmp_trees = [tree for tree in tmp_trees if tree.cost<= min_cost]
-        else: # 树不完整
-            tmp_trees.extend(news) # 加入新结果
-            tmp_trees.sort(key=lambda x:x.cost-x.depth) # 排序
-    return optimal,min_cost
-
 ### 调试函数 ###
-
-def get_operations(old,new) -> ("sep","com"):
-    """获取变动信息：(拆分, 合并)"""
-    f = lambda a,b,c:a.difference(b).intersection(c)
-    old_leaves = set(node.position for node in old.leaves)
-    new_leaves = set(node.position for node in new.leaves)
-    old_nodes = set(node.position for node in old)
-    new_nodes = set(node.position for node in new)
-    sep = f(new_nodes,new_leaves,old_leaves)
-    com = f(old_nodes,old_leaves,new_leaves)
-    return sep,com
-
 def is_nonleaves(nonleaves):
     """检查非叶节点序列是否有误"""
     if len(nonleaves)==0:return False
@@ -214,14 +146,3 @@ def random_nonleaves_seq(n):
 
 nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
 random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
-
-def get_operations(old,new) -> ("sep","com"):
-    """获取变动信息：(拆分, 合并)"""
-    f = lambda a,b,c:a.difference(b).intersection(c)
-    old_leaves = set(node.position for node in old.leaves)
-    new_leaves = set(node.position for node in new.leaves)
-    old_nodes = set(node.position for node in old)
-    new_nodes = set(node.position for node in new)
-    sep = f(new_nodes,new_leaves,old_leaves)
-    com = f(old_nodes,old_leaves,new_leaves)
-    return sep,com
