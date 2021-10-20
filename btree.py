@@ -15,23 +15,12 @@ class BTree(Node):
         self.position = 1 # 序数表述
         self._max_depth = 0 # 总深度
         
-    def trees_by_k_nonleaves(self,k):
-        """ 最后一层叶节点取 k 个拆开 -> 所有可能的新树"""
-        if k==0:return [deepcopy(self)]
-        num = len(self.last_layer)
-        indexs = choose(list(range(num)),k)
-        return [self._new_tree_by_index(index) for index in indexs]
-    
-    def _new_tree_by_index(self,index):
-        """将指定节点展开，得到新树
-        输入为索引，不建议外部调用"""
-        # 复制对象
-        tree = deepcopy(self)
-        # 获取最后一层
-        last_layer = tree.last_layer
-        for i in index:
-            # 调用方法：添加左右节点
-            self.add_left_right_to_node(last_layer[i])
+    def new_tree_by_positions(self,positions):
+        """最后一层按位置展开 -> 新树"""
+        tree = deepcopy(self) # 复制对象
+        for node in tree.last_layer: # 最后一层
+            if node.position in positions:
+                self.add_left_right_to_node(node) # 展开
         tree._max_depth += 1 # 总深度+1
         return tree
     
@@ -67,6 +56,7 @@ class BTree(Node):
         right.position = 2 * node.position + 1
         node.right =  right
     
+    @property
     def position_tree(self):
         """返回相同形状的树，结点显示值为位置"""
         tree = deepcopy(self)
@@ -80,13 +70,11 @@ class BTree(Node):
         n = len(positions)
         assert n, "输入列表不能为空"
         assert positions[0] is not None,"根节点不能为空"
-        # 初始化根节点
-        tree = BTree(positions[0])
+        tree = BTree(positions[0]) # 初始化
         while True:
             last_layer = tree.last_layer
             flag = False # 标记是否有新节点
-            for node in last_layer:
-                # 检查两个叶节点是否非 None
+            for node in last_layer: # 检查是否有叶节点
                 pos = 2 * node.position
                 # 左节点
                 if pos>n: continue
@@ -106,16 +94,82 @@ class BTree(Node):
 
 def choose(data,n):
     """从 data 中取 n 个元素"""
-    if n > len(data) or n==0: return []
+    assert n>0,"不能取0个"
+    if n > len(data) : return []
     if n == 1: return [[i] for i in data]
     if n == len(data): return [data]
     omitlast = choose(data[:-1],n)
     takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
     return omitlast+takelast
 
-### 其他函数 ###
+def get_nodes_cost(tree) -> (dict,dict):
+    """获取节点的开销信息，只记录非0节点"""
+    nonleaf_cost = {} # 非叶开销
+    leaf_cost = {} # 叶节点开销
+    for node in tree:
+        if node.left is None: # 叶节点
+            if node.value: 
+                leaf_cost[node.position] = node.value
+        else: # 非叶节点
+            v = sum(leaf.value for leaf in node.leaves)
+            if v: nonleaf_cost[node.position] = v
+    return nonleaf_cost,leaf_cost
+
+### 主函数打包 ###
+def main(positions,leaves):
+    old = BTree.list_to_tree(positions)
+    nonleaf_cost,leaf_cost = get_nodes_cost(old) # 节点开销信息
+    nonleaves = leaves_to_nonleaves(leaves)
+    root = BTree(0)
+    root.cost = 0 # 初始开销
+    min_cost = sum(leaf_cost.values()) # 最小开销
+    optimal = None # 最优解
+    tmp_trees = [root] # 待遍历集合
+    while len(tmp_trees):
+        tree = tmp_trees[0] # 取最小开销树
+        tmp_trees = tmp_trees[1:]
+        k = tree.max_depth # 总层数
+        ak = nonleaves[k] # 要展开的节点数（不能为0）
+        assert ak,"展开数不能为0"
+        # 三类节点
+        sep,not_sep,whatever = [],[],[]
+        for node in tree.last_layer:
+            if node.position in nonleaf_cost:
+                sep.append(node.position)
+            elif node.position in leaf_cost:
+                not_sep.append(node.position)
+            else:
+                whatever.append(node.position)
+        # 产生新树
+        news = []
+        if ak < len(sep): # 展开少，取 sep 子集，增加未取部分开销
+            for choice in choose(sep,ak):
+                new = tree.new_tree_by_positions(choice)
+                new.cost += sum(nonleaf_cost[i] for i in sep if i not in choice)
+                news.append(new)
+        elif len(sep) <= ak <= len(sep)+len(whatever): # 展开适中，不增加开销
+            choice = sep + whatever[:ak-len(sep)]
+            news = [tree.new_tree_by_positions(choice)]
+        else: # 展开多，取 not_sep 子集，增加选取部分开销
+            for choice in choose(not_sep,ak-len(sep)-len(whatever)):
+                new = tree.new_tree_by_positions(sep+whatever+choice)
+                new.cost += sum(leaf_cost[i] for i in choice)
+                news.append(new)
+        # 处理新树
+        if nonleaves[k+1]==0: # 树已完全展开
+            for new in news:
+                if new.cost < min_cost:
+                    min_cost = new.cost
+                    optimal = new
+                    tmp_trees = [tree for tree in tmp_trees if tree.cost<= min_cost]
+        else: # 树不完整
+            tmp_trees.extend(news) # 加入新结果
+            tmp_trees.sort(key=lambda x:x.cost-x.depth) # 排序
+    return optimal,min_cost
+
+### 调试函数 ###
 def is_nonleaves(nonleaves):
-    """检查非叶节点序列"""
+    """检查非叶节点序列是否有误"""
     if len(nonleaves)==0:return False
     if len(nonleaves)==1:return True
     return all([2*i>=j for i,j in zip(nonleaves[:-1],nonleaves[1:])])
@@ -132,14 +186,6 @@ def leaves_to_nonleaves(leaves):
     assert nonleaves[-1]==0,"输入叶节点序列不完整"
     return nonleaves
 
-def is_child(node,combine):
-    """检验 node 是否为 combine 中元素的后代"""
-    while node != 0:
-        node //= 2
-        if node in combine:
-            return True
-    return False
-
 def random_nonleaves_seq(n):
     """随机生成 n 层非叶节点序列"""
     assert n>0, "层数至少为1"
@@ -149,5 +195,6 @@ def random_nonleaves_seq(n):
         total = seq[-1] * 2
         seq.append(randint(1,total))
     return seq+[0]
+
 nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
 random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
