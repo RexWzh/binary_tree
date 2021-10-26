@@ -248,5 +248,5 @@ random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
 
 def random_tree_positions(n,max_value=30)->list:
     """生成随机树，叶子取值范围为 [0,max_value]"""
-    tree = BTree.random_binary_tree(n,max_value)
+    tree = BTree.random_binary_tree(n-1,max_value)
     return BTree.tree_to_positions(tree)
