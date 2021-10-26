@@ -92,10 +92,10 @@ class BTree(Node):
                 break
         return tree
     
-    @classmethod
-    def random_binary_tree(cls,depth,max_value=30):
+    @staticmethod
+    def random_binary_tree(depth,max_value=30)->BTree:
         """生成随机树，叶子取值范围为 [0,max_value]"""
-        t = cls(0) # 初始树
+        t = BTree(0) # 初始树
         for i in range(depth):
             last_layer = t.last_layer # 最后一层
             split_num = randint(1,len(last_layer)) # 随机数目
