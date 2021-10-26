@@ -1,6 +1,6 @@
 from binarytree import Node
 from copy import deepcopy
-from random import randint
+from random import randint,sample
 from math import factorial
 
 class BTree(Node):
@@ -91,7 +91,32 @@ class BTree(Node):
             else:
                 break
         return tree
+    
+    @classmethod
+    def random_binary_tree(cls,depth,max_value=30):
+        """生成随机树，叶子取值范围为 [0,max_value]"""
+        t = cls(0) # 初始树
+        for i in range(depth):
+            last_layer = t.last_layer # 最后一层
+            split_num = randint(1,len(last_layer)) # 随机数目
+            split_leaves = sample(last_layer,split_num) # 随机位置
+            for leaf in split_leaves:
+                BTree.add_left_right_to_node(leaf)
+            t._max_depth += 1 # 深度增加
+        for leaf in t.leaves: # 叶子节点随机值
+            leaf.value = randint(0,max_value)
+        return t
+    
+    @staticmethod
+    def tree_to_positions(tree):
+        """树转列表"""
+        depth = tree.max_depth + 1 # 树深度
+        positions = [None for i in range(2**depth-1)]
+        for node in tree:
+            positions[node.position-1]=node.value
+        return positions
 
+    
 def choose(data,n):
     """从 data 中取 n 个元素"""
     assert n>0,"不能取0个"
@@ -220,3 +245,8 @@ def random_nonleaves_seq(n):
     return seq+[0]
 nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
 random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
+
+def random_tree_positions(n,max_value=30)->list:
+    """生成随机树，叶子取值范围为 [0,max_value]"""
+    tree = BTree.random_binary_tree(n,max_value)
+    return BTree.tree_to_positions(tree)
