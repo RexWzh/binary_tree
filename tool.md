@@ -36,7 +36,7 @@
 5. is_nonleaves(nonleaves) # 检查非叶序列良定义
 6. leaves_to_nonleaves(leaves) # 叶子序列 -> 非叶子序列
 7. nonleaves2leaves(nonleaves) # 非叶序列 -> 叶子序列
-8. random_nonleaves_seq(n) # 随机生成 n 层非叶节点序列
+8. random_nonleaves_seq(n) # 随机生成长为 n 的非叶节点序列
 9. random_leaves_seq # 随机生成 n 层叶节点序列
 10. next_level(tree,nonleaves,nonleaf_cost,leaf_cost) # 过程函数-忽略
 
