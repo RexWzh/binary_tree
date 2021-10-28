@@ -15,7 +15,7 @@ class BTree(Node):
         self.position = 1 # 序数表述
         self._max_depth = 0 # 总深度
         
-    def new_tree_by_positions(self,positions):
+    def new_tree_by_list(self,positions):
         """最后一层按位置展开 -> 新树"""
         tree = deepcopy(self) # 复制对象
         for node in tree.last_layer: # 最后一层
@@ -56,13 +56,13 @@ class BTree(Node):
         right.position = 2 * node.position + 1
         node.right =  right
     
-    @property
-    def position_tree(self):
+    @staticmethod
+    def position_tree(tree):
         """返回相同形状的树，结点显示值为位置"""
-        tree = deepcopy(self)
-        for node in tree:
+        new_tree = deepcopy(tree)
+        for node in new_tree:
             node.value = node.position
-        return tree
+        return new_tree
     
     @classmethod
     def list_to_tree(cls,positions):
@@ -93,7 +93,7 @@ class BTree(Node):
         return tree
     
     @staticmethod
-    def random_binary_tree(depth,max_value=30)->BTree:
+    def random_binary_tree(depth,max_value=30):
         """生成随机树，叶子取值范围为 [0,max_value]"""
         t = BTree(0) # 初始树
         for i in range(depth):
@@ -108,12 +108,24 @@ class BTree(Node):
         return t
     
     @staticmethod
-    def tree_to_positions(tree):
-        """树转列表"""
-        depth = tree.max_depth + 1 # 树深度
-        positions = [None for i in range(2**depth-1)]
+    def tree_to_list(tree,depth=None):
+        """树 -> 列表"""
+        if depth is None:
+            depth = tree.max_depth # 初始化深度
+        positions = [None for i in range(2**(depth+1)-1)]
         for node in tree:
             positions[node.position-1]=node.value
+        return positions
+    
+    @staticmethod
+    def node_to_list(tree,depth):
+        """节点树 -> 列表"""
+        positions = [None for i in range(2**(depth+1)-1)]
+        for node in tree:
+            # 位置平移公式
+            dep = node.depth - tree.depth
+            pos = node.position - (tree.position-1)*(2**dep)
+            positions[pos-1]=node.value
         return positions
 
     
@@ -127,7 +139,7 @@ def choose(data,n):
     takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
     return omitlast+takelast
 
-def get_nodes_cost(tree) -> (dict,dict):
+def get_nodes_cost(tree):
     """获取节点的开销信息，只记录非0节点"""
     nonleaf_cost = {} # 非叶开销
     leaf_cost = {} # 叶节点开销
@@ -186,15 +198,15 @@ def next_level(tree,nonleaves,nonleaf_cost,leaf_cost):
     # 产生新树
     if ak < len(sep): # 展开少，取 sep 子集，增加未取部分开销
         for choice in choose(sep,ak):
-            new = tree.new_tree_by_positions(choice)
+            new = tree.new_tree_by_list(choice)
             new.cost += sum(nonleaf_cost[i] for i in sep if i not in choice)
             news.append(new)
     elif len(sep) <= ak <= len(sep)+len(whatever): # 展开适中，不增加开销
         choice = sep + whatever[:ak-len(sep)]
-        news = [tree.new_tree_by_positions(choice)]
+        news = [tree.new_tree_by_list(choice)]
     else: # 展开多，取 not_sep 子集，增加选取部分开销
         for choice in choose(not_sep,ak-len(sep)-len(whatever)):
-            new = tree.new_tree_by_positions(sep+whatever+choice)
+            new = tree.new_tree_by_list(sep+whatever+choice)
             new.cost += sum(leaf_cost[i] for i in choice)
             news.append(new)
     if nonleaves[k+1]==0:
@@ -205,7 +217,7 @@ def next_level(tree,nonleaves,nonleaf_cost,leaf_cost):
     return news,is_end
 
 ### 调试函数 ###
-def get_operations(old,new) -> ("sep","com"):
+def get_operations(old,new):
     """获取变动信息：(拆分, 合并)"""
     f = lambda a,b,c:a.difference(b).intersection(c)
     old_leaves = set(node.position for node in old.leaves)
