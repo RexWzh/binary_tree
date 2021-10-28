@@ -1,7 +1,6 @@
 from binarytree import Node
 from copy import deepcopy
 from random import randint,sample
-from math import factorial
 
 class BTree(Node):
     """二叉树，继承 Node 的显示功能
@@ -131,9 +130,8 @@ class BTree(Node):
     
 def choose(data,n):
     """从 data 中取 n 个元素"""
-    assert n>0,"不能取0个"
     if n > len(data) : return []
-    if n == 1: return [[i] for i in data]
+    if n == 0: return [[]]
     if n == len(data): return [data]
     omitlast = choose(data[:-1],n)
     takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
@@ -258,7 +256,20 @@ def random_nonleaves_seq(n):
 nonleaves2leaves = lambda nonleaves:[0]+[2*a-b for a,b in zip(nonleaves[:-1],nonleaves[1:])]
 random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
 
-def random_tree_positions(n,max_value=30)->list:
-    """生成随机树，叶子取值范围为 [0,max_value]"""
-    tree = BTree.random_binary_tree(n-1,max_value)
-    return BTree.tree_to_positions(tree)
+# 保存数据
+def save_vari(v,name):
+    '''文件存储'''
+    import pickle
+    fout = open(name,'wb')
+    pickle.dump(v,fout)
+    fout.close()
+    return
+
+# 读取数据
+def read_vari(name):
+    '''读取文件'''
+    import pickle
+    fin = open(name,'rb')
+    a = pickle.load(fin)
+    fin.close()
+    return a
