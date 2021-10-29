@@ -42,7 +42,7 @@ git clone git@github.com:RexWzh/binary_tree.git
    ```py
    optimal,cost = main(positions,leaves)
    print("操作开销",cost)
-   old = BTree.list_to_tree(positions)
+   old = list_to_tree(positions)
    sep,com = get_operations(old,optimal)
    print("拆开位置",sep,"合并位置",com)
    ```
@@ -71,7 +71,7 @@ git clone git@github.com:RexWzh/binary_tree.git
 def main(positions,leaves):
     """函数打包"""
     n = len(leaves)
-    old = BTree.list_to_tree(positions)
+    old = list_to_tree(positions)
     nonleaf_cost,leaf_cost = get_nodes_cost(old) # 节点开销信息
     nonleaves = leaves_to_nonleaves(leaves)
     root = BTree(0)
