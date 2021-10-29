@@ -1,10 +1,32 @@
 from binarytree import Node
 from copy import deepcopy
 from random import randint,sample
-# 增加叶节点判断
+### 添加 Node 类的方法
+def add_left_right_to_node(self) -> None:
+    """给 node 添加左右子结点"""
+    self.add_left_to_node() # 左节点
+    self.add_right_to_node() # 右节点
+
+def add_left_to_node(self,value=0) -> None:
+    """给 node 添加左节点，设置了 depth 和 position 属性"""
+    left = Node(value)
+    left.depth = self.depth + 1
+    left.position = 2 * self.position
+    self.left = left
+
+def add_right_to_node(self,value=0) -> None:
+    """给 node 添加右节点，设置了 depth 和 position 属性"""
+    right = Node(value)
+    right.depth = self.depth + 1
+    right.position = 2 * self.position + 1
+    self.right =  right
+
 Node.is_leaf = lambda self:self.left is None and self.right is None
+Node.add_left_right_to_node = add_left_right_to_node
+Node.add_right_to_node = add_right_to_node
+Node.add_left_to_node = add_left_to_node
 
-
+### 树对象
 class BTree(Node):
     """二叉树，继承 Node 的显示功能
     根节点位置记为1，深度记为0
@@ -21,7 +43,7 @@ class BTree(Node):
         tree = deepcopy(self) # 复制对象
         for node in tree.last_layer: # 最后一层
             if node.position in positions:
-                self.add_left_right_to_node(node) # 展开
+                node.add_left_right_to_node() # 展开
         return tree
     
     @property
@@ -29,55 +51,32 @@ class BTree(Node):
         """返回最后一层节点"""
         max_depth = self.max_leaf_depth
         return [l for l in self.leaves if l.depth==max_depth]
-    
-    @classmethod
-    def add_left_right_to_node(cls,node) -> None:
-        """给 node 添加左右子结点"""
-        cls.add_left_to_node(node) # 左节点
-        cls.add_right_to_node(node) # 右节点
-    
-    @staticmethod
-    def add_left_to_node(node,value=0) -> None:
-        """给 node 添加左节点，设置了 depth 和 position 属性"""
-        left = Node(value)
-        left.depth = node.depth + 1
-        left.position = 2 * node.position
-        node.left = left
-    
-    @staticmethod
-    def add_right_to_node(node,value=0) -> None:
-        """给 node 添加右节点，设置了 depth 和 position 属性"""
-        right = Node(value)
-        right.depth = node.depth + 1
-        right.position = 2 * node.position + 1
-        node.right =  right
-    
-    @classmethod
-    def list_to_tree(cls,positions):
-        """一维列表 -> 树，空节点用 None 表示"""
-        n = len(positions)
-        assert n, "输入列表不能为空"
-        assert positions[0] is not None,"根节点不能为空"
-        tree = BTree(positions[0]) # 初始化
-        flag = True # 标记是否有新节点
-        while flag:
-            last_layer = tree.last_layer
-            flag = False # 标记是否有新节点
-            for node in last_layer: # 检查是否有叶节点
-                pos = 2 * node.position
-                # 左节点
-                if pos>n: continue
-                if positions[pos-1] is not None:
-                    flag = True
-                    cls.add_left_to_node(node,positions[pos-1])
-                # 右节点
-                if pos+1>n: continue
-                if positions[pos] is not None:
-                    flag = True
-                    cls.add_right_to_node(node,positions[pos])
-        return tree
 
 ### 树工具 ###
+def list_to_tree(positions):
+    """一维列表 -> 树，空节点用 None 表示"""
+    n = len(positions)
+    assert n, "输入列表不能为空"
+    assert positions[0] is not None,"根节点不能为空"
+    tree = BTree(positions[0]) # 初始化
+    flag = True # 标记是否有新节点
+    while flag:
+        last_layer = tree.last_layer
+        flag = False # 标记是否有新节点
+        for node in last_layer: # 检查是否有叶节点
+            pos = 2 * node.position
+            # 左节点
+            if pos>n: continue
+            if positions[pos-1] is not None:
+                flag = True
+                node.add_left_to_node(positions[pos-1])
+            # 右节点
+            if pos+1>n: continue
+            if positions[pos] is not None:
+                flag = True
+                node.add_right_to_node(positions[pos])
+    return tree
+
 def random_binary_tree(depth,max_value=30):
     """生成随机树，叶子取值范围为 [0,max_value]"""
     t = BTree(0) # 初始树
@@ -86,7 +85,7 @@ def random_binary_tree(depth,max_value=30):
         split_num = randint(1,len(last_layer)) # 随机数目
         split_leaves = sample(last_layer,split_num) # 随机位置
         for leaf in split_leaves:
-            BTree.add_left_right_to_node(leaf)
+            leaf.add_left_right_to_node()
     for leaf in t.leaves: # 叶子节点随机值
         leaf.value = randint(0,max_value)
     return t
@@ -180,7 +179,7 @@ random_leaves_seq = lambda n: nonleaves2leaves(random_nonleaves_seq(n))
 def main(positions,leaves):
     """函数打包"""
     n = len(leaves)
-    old = BTree.list_to_tree(positions)
+    old = list_to_tree(positions)
     nonleaf_cost,leaf_cost = get_nodes_cost(old) # 节点开销信息
     nonleaves = leaves_to_nonleaves(leaves)
     root = BTree(0)
