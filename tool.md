@@ -4,16 +4,15 @@
 1. BTree 新增属性
    - .depth  # 节点深度，根节点为0
    - .position = 1 # 节点序数
-   - ._max_depth = 0 # 总深度，只有根节点具有该属性
 2. node 自带属性
    - .left
    - .right
    - .value 
+   - .max_leaf_depth # 节点往下的最长深度
 3. 新增方法
    - .new_tree_by_list # 将最后一层指定的位置展开 
-   - .is_leaf # 在 Node 中设置，用于判断
+   - .is_leaf # 写在 Node 中，用于判断
 4. @property
-   - .max_depth # 获取最长深度。一般用遍历更新，但由于经常用，这里使用隐藏变量 ._max_depth
    - .last_layer # 返回最后一层节点
 5. @staticmethod/@classmethod
    - 前三个函数更好的方法是修改类对象 Node
