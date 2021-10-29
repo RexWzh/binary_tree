@@ -11,10 +11,12 @@
    - .value 
 3. 新增方法
    - .new_tree_by_list # 将最后一层指定的位置展开 
+   - .is_leaf # 在 Node 中设置，用于判断
 4. @property
    - .max_depth # 获取最长深度。一般用遍历更新，但由于经常用，这里使用隐藏变量 ._max_depth
    - .last_layer # 返回最后一层节点
 5. @staticmethod/@classmethod
+   - 前三个函数更好的方法是修改类对象 Node
    - .add_left_to_node(node,value) # 左节点，附带属性 depth 和 position
    - .add_right_to_node(node,value) # 由节点，附带属性同上
    - .add_left_right_to_node(node) # 添加节点，附带属性同上，赋值为0
@@ -24,7 +26,7 @@
    - .tree_to_list(tree,depth=None) # 树 -> 列表，默认取树的深度
    - .node_to_list(tree,depth) # 节点导出树 -> 列表，需指定深度
 
-5. 特别注意
+6. 特别注意
    - 根节点所在层 depth = 0
    - 根节点的位置 position = 1
 

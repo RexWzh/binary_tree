@@ -1,6 +1,9 @@
 from binarytree import Node
 from copy import deepcopy
 from random import randint,sample
+# 增加叶节点判断
+Node.is_leaf = lambda self:self.left is None and self.right is None
+
 
 class BTree(Node):
     """二叉树，继承 Node 的显示功能
