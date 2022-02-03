@@ -240,12 +240,18 @@ def next_level(tree,nonleaves,nonleaf_cost,leaf_cost):
 
 def choose(data,n):
     """从 data 中取 n 个元素"""
-    if n > len(data) : return []
-    if n == 0: return [[]]
-    if n == len(data): return [data]
-    omitlast = choose(data[:-1],n)
-    takelast = [ i+[data[-1]] for i in choose(data[:-1],n-1)]
-    return omitlast+takelast
+    if n > len(data) : # 集合比要取的小，返回空
+        return []
+    if n == 0: # 取 0 个，返回 [空]
+        return [[]]
+    if n == len(data): # 取的数目 == 集合数目，返回 [data]
+        return [data]
+    
+    # 不含最后一个元素，对集合递归
+    omit_last = choose(data[:-1],n)
+    # 含最后一个元素，对 n 归纳
+    take_last = [sublist + [data[-1]] for sublist in choose(data[:-1],n-1)]
+    return omit_last + take_last
 
 # 保存数据
 def save_vari(v,name):
